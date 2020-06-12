@@ -1,7 +1,10 @@
 const express = require('express')
+const morgan = require('morgan')
+
 const app = express()
 
 app.use(express.json())
+app.use(morgan('tiny'))
 
 let contacts = [
     {
@@ -29,7 +32,11 @@ let contacts = [
 const getNewID = () => {
     const maxContacts = 10000
     return Math.floor(Math.random() * Math.floor(maxContacts))
-} 
+}
+
+const unknownEndpoint = (req, res) => {
+    res.status(404).send({error: 'unknown endpoint'})
+}
 
 app.get('/', (req, res) => {
     res.send('<h1>Index</h1>')
@@ -92,6 +99,7 @@ app.post('/api/persons', (req, res) => {
     res.json(contact)
 })
 
+app.use(unknownEndpoint)
 
 const port = 3001
 app.listen(port, () => { 
