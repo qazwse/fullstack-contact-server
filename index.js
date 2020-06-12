@@ -3,7 +3,7 @@ const app = express()
 
 app.use(express.json())
 
-const contacts = [
+let contacts = [
     {
         "name": "Arto Hellas",
         "number": "040-123456",
@@ -51,6 +51,12 @@ app.get('/api/persons/:id', (req, res) => {
     } else {
         res.status(404).end()
     }
+})
+
+app.delete('/api/persons/:id', (req, res) => {
+    const id = Number(req.params.id)
+    contacts = contacts.filter(c => c.id !== id)
+    res.status(204).end()
 })
 
 
