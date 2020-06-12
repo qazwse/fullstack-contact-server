@@ -1,10 +1,21 @@
 const express = require('express')
 const morgan = require('morgan')
 
+morgan.token('body', function getBody(req) {
+    const body = req.body
+    if (Object.getOwnPropertyNames(body).length > 0) {
+        return JSON.stringify(req.body)
+    } else {
+        return ""
+    }
+})
+
+
 const app = express()
 
 app.use(express.json())
-app.use(morgan('tiny'))
+app.use(morgan(':method :url :status :res[content-length] - :response-time ms :body'))
+
 
 let contacts = [
     {
