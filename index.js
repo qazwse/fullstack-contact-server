@@ -26,6 +26,11 @@ let contacts = [
     }
 ]
 
+const getNewID = () => {
+    const maxContacts = 10000
+    return Math.floor(Math.random() * Math.floor(maxContacts))
+} 
+
 app.get('/', (req, res) => {
     res.send('<h1>Index</h1>')
 })
@@ -57,6 +62,34 @@ app.delete('/api/persons/:id', (req, res) => {
     const id = Number(req.params.id)
     contacts = contacts.filter(c => c.id !== id)
     res.status(204).end()
+})
+
+app.post('/api/persons', (req, res) => {
+    const body = req.body
+
+    if (!body.name) {
+        return res.status(404).json({
+            error: 'Contact name is required'
+        })
+    } else if (!body.number) {
+        return res.status(404).json({
+            error: 'Contact number is required'
+        })
+    } else if (contacts.find(c => c.name === body.name)) { 
+        return res.status(404).json({
+            error: 'Contact name must be unique'
+        })
+    }
+    
+    const contact = {
+        name: body.name,
+        number: body.number,
+        id: getNewID(),
+        date: new Date()
+    }
+
+    contacts = contacts.concat(contact)
+    res.json(contact)
 })
 
 
