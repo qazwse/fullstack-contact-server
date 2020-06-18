@@ -112,7 +112,8 @@ app.post('/api/persons', (req, res) => {
 
 app.use(unknownEndpoint)
 
-const port = 3001
+const port = process.env.PORT 
+console.log(port)
 app.listen(port, () => { 
     console.log(`Server running on port ${port}`)
 })
