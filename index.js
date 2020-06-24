@@ -14,6 +14,7 @@ morgan.token('body', function getBody(req) {
 const app = express()
 
 app.use(express.json())
+app.use(express.static('build'))
 app.use(morgan(':method :url :status :res[content-length] - :response-time ms :body'))
 
 
@@ -112,8 +113,8 @@ app.post('/api/persons', (req, res) => {
 
 app.use(unknownEndpoint)
 
-const port = process.env.PORT 
-if (port === "" || port === "null") {
+let port = process.env.PORT 
+if (port === "" || port === "null" || port === undefined) {
     port = 3001
 }
 app.listen(port, () => { 
