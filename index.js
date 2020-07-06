@@ -19,11 +19,6 @@ app.use(express.json())
 app.use(express.static('build'))
 app.use(morgan(':method :url :status :res[content-length] - :response-time ms :body'))
 
-const getNewID = () => {
-    const maxContacts = 10000
-    return Math.floor(Math.random() * Math.floor(maxContacts))
-}
-
 const unknownEndpoint = (req, res) => {
     res.status(404).send({error: 'unknown endpoint'})
 }
@@ -67,28 +62,24 @@ app.post('/api/persons', (req, res) => {
     const body = req.body
 
     if (!body.name) {
-        return res.status(404).json({
+        return res.status(400).json({
             error: 'Contact name is required'
         })
     } else if (!body.number) {
-        return res.status(404).json({
+        return res.status(400).json({
             error: 'Contact number is required'
-        })
-    } else if (contacts.find(c => c.name === body.name)) { 
-        return res.status(404).json({
-            error: 'Contact name must be unique'
         })
     }
     
-    const contact = {
+    const contact = new Contact({
         name: body.name,
         number: body.number,
-        id: getNewID(),
         date: new Date()
-    }
+    })
 
-    contacts = contacts.concat(contact)
-    res.json(contact)
+    contact.save().then(savedContact => {
+        res.json(savedContact)
+    })
 })
 
 app.use(unknownEndpoint)
