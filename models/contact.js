@@ -1,11 +1,5 @@
 const mongoose = require('mongoose')
 
-// Database connection settings
-const password = "KOXJUC7TOmS2x2DX" // pw won't work yet, want to grab correctly
-const db_name = "phonebook_app"
-const url = 
-    `mongodb+srv://fullstack:${password}@cluster0-fieq2.mongodb.net/${db_name}?retryWrites=true`
-
 console.log("Connecting to", url)
 mongoose.connect(url, { useNewUrlParser: true, useUnifiedTopology: true })
     .then(result => {
