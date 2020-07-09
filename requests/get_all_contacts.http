@@ -1,0 +1,14 @@
+# Get All Contacts
+GET http://localhost:3001/api/persons
+
+# Get a single contact}
+GET http://localhost:3001/api/persons/5f0399e2dd045a15ede563d6
+
+# Get a contact - doesn't exist
+GET http://localhost:3001/api/persons/000f81398712987bc5d339a0
+
+# Get a contact - malformed id
+GET http://localhost:3001/api/persons/Curtis
+
+# Get info
+GET http://localhost:3001/info
