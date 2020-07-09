@@ -1,9 +1,8 @@
 require('dotenv').config()
 const express = require('express')
 const morgan = require('morgan')
-
 const Contact = require('./models/contact')
-    
+
 morgan.token('body', function getBody(req) {
     const body = req.body
     if (Object.getOwnPropertyNames(body).length > 0) {
@@ -20,7 +19,19 @@ app.use(express.static('build'))
 app.use(morgan(':method :url :status :res[content-length] - :response-time ms :body'))
 
 const unknownEndpoint = (req, res) => {
-    res.status(404).send({error: 'unknown endpoint'})
+    res.status(404).send({
+        error: 'unknown endpoint'
+    })
+}
+
+const errorHandler = (error, req, res, next) => {
+    console.error(error.message)
+
+    if (error.name === 'CastError') {
+        return res.status(400).send({ error: 'malformed id' })
+    }
+
+    next(error)
 }
 
 app.get('/', (req, res) => {
@@ -29,7 +40,11 @@ app.get('/', (req, res) => {
 
 app.get('/info', (req, res) => {
     let time = new Date()
-    let num_c = contacts.length
+    let num_c = 0
+
+    Contact.find({}).then(c => {
+        num_c = c.length
+    })
     res.send(
         `<p>Phonebook has ${num_c} contacts.</p>
         <p>${time.toString()}</p>`
@@ -42,20 +57,39 @@ app.get('/api/persons', (req, res) => {
     })
 })
 
-app.get('/api/persons/:id', (req, res) => {
-    const id = Number(req.params.id)
-    const contact = contacts.find(c => c.id === id)
-    if (contact) {
-        res.json(contact)        
-    } else {
-        res.status(404).end()
-    }
+app.get('/api/persons/:id', (req, res, next) => {
+    Contact.findById(req.params.id)
+        .then(contact => {
+            if (contact) {
+                res.json(contact)
+            } else {
+                res.status(404).end()
+            }
+        })
+        .catch(error => next(error))
 })
 
-app.delete('/api/persons/:id', (req, res) => {
-    const id = Number(req.params.id)
-    contacts = contacts.filter(c => c.id !== id)
-    res.status(204).end()
+app.put('/api/persons/:id', (req, res, next) => {
+    const body = req.body
+    const contact = {
+        name: body.name,
+        number: body.number,
+        date: new Date()
+    }
+
+    Contact.findByIdAndUpdate(req.params.id, contact, {new: true})
+        .then(updatedContact => {
+            res.json(updatedContact)
+        })
+        .catch(error => next(error))
+})
+
+app.delete('/api/persons/:id', (req, res, next) => {
+    Contact.findByIdAndRemove(req.params.id)
+        .then(result => {
+            res.status(204).end()
+        })
+        .catch(error => next(error))
 })
 
 app.post('/api/persons', (req, res) => {
@@ -70,7 +104,7 @@ app.post('/api/persons', (req, res) => {
             error: 'Contact number is required'
         })
     }
-    
+
     const contact = new Contact({
         name: body.name,
         number: body.number,
@@ -83,11 +117,12 @@ app.post('/api/persons', (req, res) => {
 })
 
 app.use(unknownEndpoint)
+app.use(errorHandler)
 
-let port = process.env.PORT 
+let port = process.env.PORT
 if (port === "" || port === "null" || port === undefined) {
     port = 3001
 }
-app.listen(port, () => { 
+app.listen(port, () => {
     console.log(`Server running on port ${port}`)
 })
