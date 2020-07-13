@@ -28,7 +28,13 @@ const errorHandler = (error, req, res, next) => {
     console.error(error.message)
 
     if (error.name === 'CastError') {
-        return res.status(400).send({ error: 'malformed id' })
+        return res.status(400).send({
+            error: 'malformed id'
+        })
+    } else if (error.name === 'ValidationError') {
+        return res.status(400).json({
+            error: error.message
+        })
     }
 
     next(error)
@@ -77,7 +83,10 @@ app.put('/api/persons/:id', (req, res, next) => {
         date: new Date()
     }
 
-    Contact.findByIdAndUpdate(req.params.id, contact, {new: true})
+    Contact.findByIdAndUpdate(req.params.id, contact, {
+            new: true,
+            runValidators: true
+        })
         .then(updatedContact => {
             res.json(updatedContact)
         })
@@ -92,28 +101,22 @@ app.delete('/api/persons/:id', (req, res, next) => {
         .catch(error => next(error))
 })
 
-app.post('/api/persons', (req, res) => {
+app.post('/api/persons', (req, res, next) => {
     const body = req.body
-
-    if (!body.name) {
-        return res.status(400).json({
-            error: 'Contact name is required'
-        })
-    } else if (!body.number) {
-        return res.status(400).json({
-            error: 'Contact number is required'
-        })
-    }
-
     const contact = new Contact({
         name: body.name,
         number: body.number,
         date: new Date()
     })
 
-    contact.save().then(savedContact => {
-        res.json(savedContact)
-    })
+    contact.save()
+        .then(savedContact => {
+            return savedContact.toJSON()
+        })
+        .then(savedFormattedContact => {
+            res.json(savedFormattedContact)
+        })
+        .catch(error => next(error))
 })
 
 app.use(unknownEndpoint)
